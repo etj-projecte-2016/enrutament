@@ -1,0 +1,12 @@
+Utilizando rsyslog para hacer de server: 
+
+- http://xmodulo.com/configure-syslog-server-linux.html
+- https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux_OpenStack_Platform/3/html/Installation_and_Configuration_Guide/Configuring_rsyslog_on_the_Individual_Nodes.html
+- http://www.linuxquestions.org/questions/centos-111/central-log-server-aggregating-all-messages-to-var-log-messages-4175526126/
+Utilizando systemd para hacer de server: 
+
+- https://www.freebsd.org/doc/handbook/configtuning-syslog.html
+- https://www.freedesktop.org/software/systemd/man/systemd-journal-remote.html
+- http://rpm.pbone.net/index.php3/stat/45/idpl/28166589/numer/8/nazwa/systemd-journal-upload
+
+https://www.freedesktop.org/software/systemd/man/journald.conf.html
