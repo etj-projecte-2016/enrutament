@@ -10,3 +10,7 @@ Utilizando systemd para hacer de server:
 - http://rpm.pbone.net/index.php3/stat/45/idpl/28166589/numer/8/nazwa/systemd-journal-upload
 
 https://www.freedesktop.org/software/systemd/man/journald.conf.html
+
+Syslog:
+
+- https://es.wikipedia.org/wiki/Syslog
