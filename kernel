@@ -1,0 +1,8 @@
+/var/log/kernel{
+    missingok
+    notifempty
+    sharedscripts
+    rotate 1
+    daily
+    compress
+}
