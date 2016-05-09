@@ -14,3 +14,13 @@ https://www.freedesktop.org/software/systemd/man/journald.conf.html
 Syslog:
 
 - https://es.wikipedia.org/wiki/Syslog
+
+Rsyslog:
+
+- https://en.wikipedia.org/wiki/Rsyslog
+- http://www.rsyslog.com/doc/master/tutorials/index.html
+
+Logrotate:
+
+-https://support.rackspace.com/how-to/understanding-logrotate-utility/
+- man logrotate
