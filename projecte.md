@@ -67,7 +67,7 @@ Podem veure una línia d'exemple d'un log:
 Syslog com aplicació, ha quedat obsoleta per molts motius esmentats anteriorment. En aquest projecte utilitzarem rsyslog com aplicació, per a centralitzar els logs. 
 Rsyslog utilitza el mateix estandard que utilitza syslog (RFC 3164), però extenent aquest últim. Les principals millores són:
 
-*  Utilització de la ISO 8601. Permet el timestamp en milisegons, a més de la utilització de time-zones.
+* Utilització de la ISO 8601. Permet el timestamp en milisegons, a més de la utilització de time-zones.
 * Utilització de TCP per enviar els missatges.
 * Completa funcionalitat amb systemd journal. 
 * Completa funcionalitat amb SSL i GSS-API.
@@ -86,21 +86,21 @@ A l'hora de configurar els hosts, utilizarem el [manual](https://access.redhat.c
 
 En el nostre cas, tenim desactivat tant el selinux com el firewall(no és el més indicat, però es un entorn de proves). El fitxer de configuració de rsyslog és el /etc/rsyslog.conf. En el nostre cas el [fitxer](https://github.com/etj-projecte-2016/enrutament/blob/master/rsyslog.conf) quedaria d'aquesta manera. A l'hora de filtrar el que volem i com ho volem, tindriem que utilitzar expressions regulars. Per exemple:  
 
-> * mail.* /var/log/messages 
-* authpriv.* /var/log/secure
+    mail.* /var/log/messages 
+    authpriv.* /var/log/secure
  
 En aquests casos estem dient que tot el que comenci en mail,authpriv es dessi, en el seu respectiu log.
 
 Però també tenim l'opció de crear templates:
 
-> * $template TmplAuth, "/var/log/HOSTS/%HOSTNAME%/%PROGRAMNAME%"
-* $template TmplMsg, "/var/log/HOSTS/%HOSTNAME%/%PROGRAMNAME%"
-* $template Msgs, "/var/log/HOSTS/%HOSTNAME%/messages"
+	$template TmplAuth, "/var/log/HOSTS/%HOSTNAME%/%PROGRAMNAME%"
+	$template TmplMsg, "/var/log/HOSTS/%HOSTNAME%/%PROGRAMNAME%"
+	$template Msgs, "/var/log/HOSTS/%HOSTNAME%/messages"
 
-> * authpriv.* ?TmplAuth
-* *.info,mail.none,authpriv.none,cron.none ?TmplMsg
-* *.* ?Msgs
-* & ~ 
+	authpriv.* ?TmplAuth
+	*.info,mail.none,authpriv.none,cron.none ?TmplMsg
+	*.* ?Msgs
+	& ~ 
  
 Amb l'opció $template, creem una variable que es diu TemlAuth, i dessarà tot el que acabi per TmplAuth a, /var/log/HOSTS/nom-del-host/nom-del-programa. Amb aquesta configuració estem dessant per cada hosts un log per cada programa que els generi, i a més tot el que es generi en un log concentrat que es diu messages. 
 
@@ -114,15 +114,56 @@ El [fitxer](https://github.com/etj-projecte-2016/enrutament/blob/master/rsyslog.
 
 Cal configurar:
 
-> * *.* @192.168.2.40:514
+    *.* @192.168.2.40:514
 
 Li estem dient que tot el que generi rsyslog, ho enviï a la ip indicada.
 
-Amb tot això tindriem configurat ja la centralització feta. El següent tema a explorar és, els logs que generem seran enviats tots al servidor, o per contra volem que també es quedin els logs al client, per tal de tenir un backup de seguretat? 
+Amb tot això tindriem configurat ja la centralització feta. El següent tema 
+a explorar és, els logs que generem seran enviats tots al servidor, o per contra 
+volem que també es quedin els logs al client, per tal de tenir un backup de seguretat? 
 
 ### Administració de logs amb logrotate i creació d'escripts
 
-Per explorar aquest tema, exposo el seguent cas. Ens proposen que els logs s'enviin al servidor, però que a més d'això es quedi un backup de dels logs generals pel kernel. 
+Per explorar aquest tema, exposo el següent cas. A la feina ens proposen
+que els logs generats pel kernel a més d'enviar-los al servidor, es quedin 
+al propi client en forma comprimida un dia. Per d'altra banda a un servidor 
+de backup tindrem que mantenir una setmana els logs generats. Per això utilitzarem 
+logrotate per desglossar cada dia el log generat. Al servidor utilizarem 
+un cron que buscarà els fitxers més antics d'una setmana, farà un backup 
+d'aquests i per últim esborrarà el backup anterior.
+
+#### Configuració del client
+
+Primer de tot tenim que configurar el client per que guardi els missatges 
+del kernel al propi host. Tenim que editar el fitxer /etc/rsyslog.conf
+i afegir la següent linia:
+
+    kern.*		/var/log/kernel 
+
+Fem un restart del servei syslog y rsyslog.
+
+Per d'altra banda, ens havien demanat que aquests logs estiguin un dia 
+en el propi hosts. Això ho podem fer amb logrotate.
+
+##### Logrotate
+
+Logrotate és una eïna per l'administració de sistemes que generen gran 
+nombre de logs. Això permet entre d'altres coses, rotació automàtica, 
+compressió de logs, esborrar-los etc.
+
+En el nostre cas els logs del kernel tenen que estar un dia només. El fitxer
+de configuració del logrotate està a /etc/logrotate.conf o per contra, dins del
+directori /etc/logrotate.d/, hi ha un fitxer per cada cas. En aquest cas
+utilitzarem un fitxer apart per fer el nostre exemple. El 
+[fitxer](https://github.com/etj-projecte-2016/enrutament/blob/master/kernel)
+en qüestió quedaria d'aquesta manera. 
+
+Aquest fitxer ens diu que farà logrotate del fitxer /var/log/kernel, que
+ho farà diariament, i que començarà a borrar el fitxer antic quan hi existeixi 
+un fitxer previ. A més fara els fitxers comprimits.
+
+
+   
 
 
 
