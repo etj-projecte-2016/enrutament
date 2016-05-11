@@ -160,11 +160,42 @@ en qüestió quedaria d'aquesta manera.
 
 Aquest fitxer ens diu que farà logrotate del fitxer /var/log/kernel, que
 ho farà diariament, i que començarà a borrar el fitxer antic quan hi existeixi 
-un fitxer previ. A més fara els fitxers comprimits.
+dos fitxers previs. A més fara els fitxers comprimits.
 
+Per fer-ho més ràpid, editem l'arxiu de configuració del cron, per tal 
+de fer-ho cada minut. Quedaria d'aquesta manera:
 
-   
+    * * * * logrotate -f /etc/logrotate.d/kernel
+    
+A més, si no volem esperar cada minut, podem fer l'ordre:
 
+    logrotate -vf /etc/logrotate.d/kernel
+
+Ens executaria el fitxer que li estem indicant i faria el rotate. 
+
+A l'hora de comprimir els fitxers, el logrotate crea un fitxer amb el 
+nom d'aquest seguit d'un número començant pel número 1. Com que no volem
+això, si no que acabi amb la data de quan es crea el backup, tenim que 
+afegir les següents linies:
+
+    dateext
+    dateformat %Y%m%d
+    
+Logrotate fa un backup del propi fitxer original, per tant, es te que crear
+un altra vegada aquest. Per fer-ho tenim l'opció postorate que ens permet
+executar scripts una vegada feta la rotació. En aquest exemple creem el fitxer
+original per tal de deixar-ho tot tal i com estava. Per exemple:
+
+    posrotate
+		/bin/touch /var/log/kernel
+	endscript
+	
+
+##### Rsync
+
+La segona part de la proposta era sincronitzar en un servidor de backups,
+fins a 10 fitxers, per tal de tenir una copia d'aquests. Això ho podem aconseguir
+amb la utilitat Rsync. 
 
 
 
