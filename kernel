@@ -2,7 +2,12 @@
     missingok
     notifempty
     sharedscripts
-    rotate 1
-    daily
+    rotate 2
+    hourly
     compress
+    dateext
+    dateformat %Y%m%d
+    postrotate
+    	/bin/touch /var/log/kernel
+    endscript
 }
