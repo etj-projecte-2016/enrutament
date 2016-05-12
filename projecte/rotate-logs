@@ -1,0 +1,4 @@
+#
+
+# Executa  la rotació de logs cada minut
+*/1 * * * * root	/var/tmp/rotate1min.sh
