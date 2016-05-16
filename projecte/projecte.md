@@ -206,6 +206,41 @@ amb un directori remot (en aquest cas el host i10, que és on concentrem els log
 
 Amb això tindriem ja finalitzat l'exemple que vam proposar.
 
+## Centralització de logs amb Systemd
+
+### Systemd
+
+Systemd és un conjunt de dimonis d'administració del sistema GNU/Linux,
+llibreries i eïnes per interactuar amb el nucli del SO. Aquest, va substituir
+l'antic init, sent el primer procés que s'executa en el sistema i per tant 
+és el procés pare de tots els demés. 
+
+
+### Estructura general
+
+Systemd per defecte emmagatzema els logs a /var/log/journal/. Dins d'aquests
+directori crea un subdirectori amb el "UID" del sistema. 
+
+Els logs que genera systemd, estan en format binari, que dona per tant, 
+millor rendiment en indexació, per tant d'exploració, i per últim d'integritat
+d'aquests. Per contra no podem explorar-los amb un simple cat. Per per-ho,
+tenim un client que utilitza systemd per mostrar els logs.
+
+#### Journalctl
+
+##### Estructura del missatge
+
+L'estructura general del missatge, és molt semblant a la del syslog, encara
+que hi ha diferències:
+
+* Els missatges d'error són més grans i tenen un color vermell i en negreta.
+* El time stamp, és convertit a la hora local del sistema.
+* Tots els logs són mostrats, també els que estan rotats. 
+* L'inici d'un nou boot, és mostrat de manera diferent i marcada, per diferenciar-los.
+
+Un exemple sería:
+
+*May 16 16:24:58 localhost.localdomain su[6439]: (to root) eric on pts/3*
 
 
 
