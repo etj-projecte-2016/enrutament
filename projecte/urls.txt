@@ -24,3 +24,8 @@ Logrotate:
 
 -https://support.rackspace.com/how-to/understanding-logrotate-utility/
 - man logrotate
+
+systemd:
+
+format dels logs: https://www.freedesktop.org/wiki/Software/systemd/journal-files/
+https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/System_Administrators_Guide/s1-Using_the_Journal.html
