@@ -1,4 +1,5 @@
-#**Enrutament i concentració de logs amb Syslog i Journal**
+	
+	#**Enrutament i concentració de logs amb Syslog i Journal**
 
 
 ## Centralització de logs amb rsyslog
@@ -242,6 +243,27 @@ Un exemple sería:
 
 *May 16 16:24:58 localhost.localdomain su[6439]: (to root) eric on pts/3*
 
+
+### Enrutament amb systemd
+
+Per fer aquesta part, s'han creat dos màquines virtuals amb la última versió
+de Fedora. En concret la versió 23. 
+
+Per fer la concentració de logs amb journal, hi ha dos serveis que tenim que utilitzar:
+journal-remote( que ens permet captar els logs ) i journal-upload( que ens permet
+enviar els logs a una màquina remota). El paquet que els conté, és el
+systemd-journal-gateway. 
+
+#### Configuració del servidor i client
+
+El contexte general de les proves, serà igual al que vam utilitzar en el cas
+de syslog, però amb dos màquines virtuals, una en un pc diferent, per tal de 
+no carregar molt un de sol. 
+
+A l'hora de configurar els hosts, utilitzarem els manuals de systemd-upload
+i systemd-remote.
+
+##### Servidor 
 
 
 
