@@ -1,6 +1,4 @@
-	
-	#**Enrutament i concentració de logs amb Syslog i Journal**
-
+#Enrutament i concentració de logs amb Syslog i Journal
 
 ## Centralització de logs amb rsyslog
 
@@ -247,12 +245,26 @@ Un exemple sería:
 ### Enrutament amb systemd
 
 Per fer aquesta part, s'han creat dos màquines virtuals amb la última versió
-de Fedora. En concret la versió 23. 
+de Fedora, ja que per instal.lar els paquets necessaris, la versió que teniem
+a classe no estava suportada. En concret la versió 23. 
 
 Per fer la concentració de logs amb journal, hi ha dos serveis que tenim que utilitzar:
 journal-remote( que ens permet captar els logs ) i journal-upload( que ens permet
 enviar els logs a una màquina remota). El paquet que els conté, és el
 systemd-journal-gateway. 
+
+#### Problemes generals
+
+A l'hora de fer una recerca, per trobar informació de journald, el dimoni 
+que s'encarrega de les tasques que tenen que veure amb logs, m'he trobat 
+que no hi ha molta inforamció a nivell usuari sense experiencia. A més m'he 
+trobat amb molts problemes amb la documentació, amb una informació molt escassa,
+amb errors, etc. A mes d'aquest problema, hi ha un molt greu, i es que hi ha 
+molts bugs coneguts. A pàgines com github, on la gent comenta els seus problemes,
+hi ha bastants posts on, coincideixen que journald no està encara per ser incorporat
+en aquests temes. Li falta encara per polir. Dit això, encara amb problemes,
+gràcies a forums on la gent que no te intenció lucrar-se, he aconseguit 
+centrarlitzar els logs en una sol host.
 
 #### Configuració del servidor i client
 
@@ -263,8 +275,48 @@ no carregar molt un de sol.
 A l'hora de configurar els hosts, utilitzarem els manuals de systemd-upload
 i systemd-remote.
 
+##### Client
+
+Primer de tot instal.lem el software necessari. En concret l'ordre és:
+
+    yum install -y systemd-journal-gateway
+
+Per configurar el client tenim que editar el següent fitxer de configuració:
+
+    vim /etc/systemd/journal-upload.conf
+
+Els logs que s'enviaran al servidor, poden utilitzar el protocol http i https,
+però de moment https no funciona tal i com es menciona als fitxers de configuració.
+Per tant utilitzarem només http.
+
+La linia:  
+
+    URL=http://172.16.0.10:19532
+    
+Està indicant la url del servidor el port que utilitzarà, que és el per defecte,
+i el protocol.
+
+
+Per fer que journal-upload estigui on en l'arrancada del sistema:
+
+    systemctl enable systemd-journal-upload.service
+    
+ Per últim fem un restart del servei per que agagi la nova configuració:
+ 
+    systemctl restart systemd-journal-upload.service
+    
+Al fer el status del servei, veurem que el servei esta failed, per que no 
+pot llegir ni escriure al directori /var/lib/systemd/journal-upload. Una solució
+que vaig trobar per internet era afegir a systemd-journal-upload al grup 
+systemd-journal que si te permisos. Però no vaig tenir éxit. Així que 
+temporalment he donat permisos 777 al directori.
+
+    chmod 777 /var/lib/systemd/journal-upload
+    
 ##### Servidor 
 
-
+Per la part del servidor, podem fer que el servidor prengui el rol de pasiu
+(el servidor espera a conexions, a l'espera d'events) o per d'altra banda 
+actiu( va a demanar al client els logs ).
 
 
