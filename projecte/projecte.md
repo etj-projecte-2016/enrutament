@@ -360,4 +360,17 @@ Per últim fem un restart del servei:
     
 Amb tot això ja tenim tot configurat per tranferir els logs amb journal.
 
+### Exploració del logs amb journalctl
+
+Per defecte tots els usuaris tenen permis per poder inspeccionar els seus
+logs privats. Per defecte els logs estan a /var/log/journal/ID/. Per poder
+inspeccionar tots els logs, tenim que ser super usuari o podem afegir a l'usuari 
+que volguem als grups, systemd-journal, adm o wheel. Per exemple:
+
+    usermod -a -G wheel pere
+    
+Quan cridem a journalctl amb el terminal sense opcions, per defecte 
+ens mostra tots els logs que hi ha en el sistema, del path per defecte on 
+estan allotjats. 
+
 
