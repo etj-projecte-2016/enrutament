@@ -269,8 +269,7 @@ centrarlitzar els logs en una sol host.
 #### Configuració del servidor i client
 
 El contexte general de les proves, serà igual al que vam utilitzar en el cas
-de syslog, però amb dos màquines virtuals, una en un pc diferent, per tal de 
-no carregar molt un de sol. 
+de syslog, però amb dos màquines virtuals.
 
 A l'hora de configurar els hosts, utilitzarem els manuals de systemd-upload
 i systemd-remote.
@@ -313,10 +312,52 @@ temporalment he donat permisos 777 al directori.
 
     chmod 777 /var/lib/systemd/journal-upload
     
+A més, tenim que afegir a l'usuari systemd-journal-upload al grup system-journal,
+per tal que pugui escriure i llegir a aquest directori:
+
+    usermod -a -G systemd-journal systemd-journal-remote 
+
+Per últim desactivem el firewalld i posem a permissive el selinux:
+
+    systemctl stop firewalld
+    systemctl disable firewalld
+    setenforce 0
+    
 ##### Servidor 
 
 Per la part del servidor, podem fer que el servidor prengui el rol de pasiu
 (el servidor espera a conexions, a l'espera d'events) o per d'altra banda 
-actiu( va a demanar al client els logs ).
+actiu( va a demanar al client els logs ). En aquest cas faré que el servidor
+prengui el rol de passiu.
+
+Primer de tot instal·lem el paquet que he esmentat anteriorment:
+
+    yum install -y systemd-journal-gateway 
+
+Per configurar el port que utilitzarà el journal-remote tenim que editar 
+el fitxer /etc/systemd/system/sockets.target.wants/systemd-journal-remote.socket.
+Però en el nostre cas deixarem el que hi ha per defecte.
+
+Per configurar paràmetres del journal-remote editem el fitxer 
+/lib/systemd/system/systemd-journal-remote.service. En el nostre cas
+editarem el protocol a utilitzar(http) ja que encara que estigui inclós
+https, no funciona correctament. També es pot editar el directori on 
+aniràn els logs rebuts, a més de mols paràmetres més.
+
+Tenim que assegurar-nos que el directori on aniràn els logs existeixi, de lo
+contrari no arrencarà el servei:
+
+    mkdir /var/log/journal/remote
+    chown systemd-journal-remote /var/log/journal/remote
+    
+    
+El propi fitxer de configuració del servei a /etc/systemd/journal-remote.conf
+podem configurar si utilitzarà https( per tant ssl ), entre d'altres.
+
+Per últim fem un restart del servei:
+
+    systemctl restart systemd-journal-remote
+    
+Amb tot això ja tenim tot configurat per tranferir els logs amb journal.
 
 
