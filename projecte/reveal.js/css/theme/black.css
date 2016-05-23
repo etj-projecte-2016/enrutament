@@ -12,7 +12,8 @@ section.has-light-background, section.has-light-background h1, section.has-light
  *********************************************/
 body {
   background: #021C1E;
-  background-color: #021C1E; }
+  background-color: #021C1E; 
+  }
 
 .reveal {
   font-family: "Source Sans Pro", Helvetica, sans-serif;
@@ -51,11 +52,11 @@ body {
   word-wrap: break-word; }
   
 .reveal h1 {
-  font-size: 2.0em;
+  font-size: 1.8em;
    }
 
 .reveal h2 {
-  font-size: 1.6em;
+  font-size: 1.2em;
   text-transform: none; }
 
 .reveal h3 {
@@ -71,9 +72,17 @@ body {
 /*********************************************
  * OTHER
  *********************************************/
+/*
 .reveal p {
   margin: 20px 0;
-  line-height: 1.3; }
+  line-height: 1.3;
+  font-size: 0.5em; }
+*/
+  
+.reveal li{
+  margin: 20px 0;
+  line-height: 1.3;
+  font-size: 0.8em; }
 
 /* Ensure certain elements are never larger than the slide itself */
 .reveal img,
@@ -145,7 +154,9 @@ body {
 .reveal pre {
   display: block;
   position: relative;
+/*
   width: 90%;
+*/
   margin: 20px auto;
   text-align: left;
   font-size: 0.55em;

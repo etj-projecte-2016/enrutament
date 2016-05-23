@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+
+<title>Enrutament i concentració de logs amb Syslog i Journal</title>
+
+<meta name="description" content="Enrutament i concentració de logs amb Syslog i Journal">    
+
+  <meta name="author" content="Eric Torres Jara" />
+
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<link rel="stylesheet" href="css/reveal.css">
+  <link rel="stylesheet" href="css/theme/black.css" id="theme">
+
+
+<!-- For syntax highlighting -->
+  <link rel="stylesheet" href="lib/css/zenburn.css">
+
+
+<!-- If the query includes 'print-pdf', use the PDF print sheet -->
+<script>
+  document.write( '<link rel="stylesheet" href="css/print/' +
+    ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + 
+    '.css" type="text/css" media="print">' );
+</script>
+
+<!--[if lt IE 9]>
+<script src="lib/js/html5shiv.js"></script>
+<![endif]-->
+</head>
+
+<body>
+
+<div class="reveal">
+
+<!-- Any section element inside of this container is displayed as a slide -->
+<div class="slides">
+
+<section>
+<h1>Enrutament i concentració de logs amb Syslog i Journal</h1>
+<h3>Eric Torres Jara</h3>
+<p>
+<h4>ASIX 2016</h4>
+</p>
+</section>  
+
+
+<section id="tema-general-del-projecte" class="level1">
+<h1>Tema general del projecte</h1>
+<ul>
+<li>Syslog</li>
+<li>Systemd</li>
+<li>Enrutament</li>
+<li>Exploració de logs</li>
+</ul>
+</section>
+<section id="centralització-de-logs-amb-syslog" class="level1">
+<h1>Centralització de logs amb syslog</h1>
+<section id="syslog" class="level2">
+<h2>Syslog</h2>
+<ul>
+<li>Protocol</li>
+<li>Syslogd</li>
+<li>TCP 514</li>
+<li>Obsolet</li>
+</ul>
+</section>
+<section id="estructura-del-missatge" class="level2">
+<h2>Estructura del missatge</h2>
+<ol type="1">
+<li>Prioritat</li>
+<li>Capcelera</li>
+<li>Text</li>
+</ol>
+</section>
+<section id="prioritat" class="level2">
+<h2>Prioritat</h2>
+<p>Número de 8 bits que indica el recurs( 5 bits ) i el nivel d'importància (3 bits).</p>
+<ul>
+<li>Recurs de 0 fins 23 i l'importància de 0 fins 7</li>
+</ul>
+</section>
+<section id="càlcul-prioritat" class="level2">
+<h2>Càlcul prioritat</h2>
+<pre><code>Prioritat = Recurs * 8 + Importància</code></pre>
+<ul>
+<li>Valors més baixos representen major prioritat</li>
+</ul>
+</section>
+<section id="capcelera" class="level2">
+<h2>Capcelera</h2>
+<p>Mmm dd hh:mm:ss + nom del host o direcció IP</p>
+</section>
+<section id="text" class="level2">
+<h2>Text</h2>
+<p>Informació sobre el procés que ha generat el log.</p>
+<ul>
+<li>Nom del procés + &quot;:&quot; + contingut real del missatge</li>
+</ul>
+</section>
+<section id="exemple" class="level2">
+<h2>Exemple</h2>
+<pre><code>May  2 12:50:35 i10 pengine[12009]: notice: LogActions: Move    ClusterIP   (Started i11 -&gt; i10)</code></pre>
+</section>
+<section id="rsyslog" class="level2">
+<h2>Rsyslog</h2>
+<p>Eś una millora de syslogd ja obsolet. Utilitza el mateix RFC però amb millores:</p>
+<ul>
+<li>Permet el timestamp en milisegons, a més de la utilització de time-zones</li>
+<li>TCP per enviar els missatges</li>
+<li>Completa funcionalitat amb systemd journal y SSL.</li>
+</ul>
+</section>
+<section id="configuració-del-servidori10" class="level2">
+<h2>Configuració del servidor(i10)</h2>
+<ul>
+<li>El fitxer general de rsyslog està a /etc/rsyslog.conf</li>
+<li>Directori de treball és /var/log</li>
+<li>Creació de regles a partir d'expressions regulars</li>
+</ul>
+</section>
+<section id="configuració-del-servidori102" class="level2">
+<h2>Configuració del servidor(i10)(2)</h2>
+<ul>
+<li>Centralitzar-ho tot en un sol fitxer a /var/log/messages</li>
+<li>Dividir els logs segons el hosts, programa</li>
+</ul>
+</section>
+<section id="configuració-del-servidori103" class="level2">
+<h2>Configuració del servidor(i10)(3)</h2>
+<p>Les linies que cal configurar són:</p>
+<pre><code>    $template TmplAuth, &quot;/var/log/HOSTS/%HOSTNAME%/%PROGRAMNAME%&quot;
+    $template TmplMsg, &quot;/var/log/HOSTS/%HOSTNAME%/%PROGRAMNAME%&quot;
+    $template Msgs, &quot;/var/log/HOSTS/%HOSTNAME%/messages&quot;
+
+    authpriv.* ?TmplAuth
+    *.info,mail.none,authpriv.none,cron.none ?TmplMsg
+    *.* ?Msgs
+    &amp; ~ </code></pre>
+</section>
+<section id="configuració-del-servidori104" class="level2">
+<h2>Configuració del servidor(i10)(4)</h2>
+<ul>
+<li>Restart del servei</li>
+</ul>
+<pre><code>systemctl restart rsyslogd 
+</code></pre>
+<ul>
+<li>Mirar el estat</li>
+</ul>
+<pre><code>systemctl status rsyslogd 
+</code></pre>
+<ul>
+<li>Mirar /var/log/HOSTS/%HOSTNAME%</li>
+</ul>
+<pre><code>ll /var/log/HOSTS/\%HOSTNAME\%```
+
+## Configuració del client
+
+Només cal indicar la IP del servidor i que volem enviar
+</code></pre>
+<p><em>.</em> @192.168.2.40:514 ```</p>
+</section>
+</section>
+</div>
+
+<script src="lib/js/head.min.js"></script>
+<script src="js/reveal.js"></script>
+
+<script>
+  // Full list of configuration options available here:
+  // https://github.com/hakimel/reveal.js#configuration
+  Reveal.initialize({
+    controls: true,
+    progress: true,
+    history: true,
+    center: false,
+  // available themes are in /css/theme
+      theme: Reveal.getQueryHash().theme || 'black', 
+    // default/cube/page/concave/zoom/linear/fade/none
+      transition: Reveal.getQueryHash().transition || 'linear',
+    // Optional libraries used to extend on reveal.js
+  dependencies: [
+    { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+    { src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+    { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+    { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+    { src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+    { src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+    // { src: 'plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+  ]
+  });
+</script>
+
+</body>
+</html>

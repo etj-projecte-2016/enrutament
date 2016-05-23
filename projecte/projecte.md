@@ -4,9 +4,17 @@
 
 ### Syslog
 
-Syslog és un standart de facto( no està acceptat per un organisme estandaritzat, però si de forma popular ), utilitzat per la generació de logs en una xarxa informàtica. Els logs són missatges de seguretat que genera el sistema, encara que poden contenir qualsevol informació. El dimoni que utilitza aquest protocol és el syslogd, que envia missatges via UDP(encara que es pot configurar per que ho faci també per TCP), pel port 514. 
+Syslog és un standart de facto( no està acceptat per un organisme estandaritzat, però si de forma popular ), 
+utilitzat per la generació de logs en una xarxa informàtica. Els logs són missatges de seguretat que genera el sistema, 
+encara que poden contenir qualsevol informació. El dimoni que utilitza aquest protocol és el syslogd, que 
+envia missatges via UDP(encara que es pot configurar per que ho faci també per TCP), pel port 514. 
 
-El protocol va ser creat per Eric Allman, com a part del projecte Sendmail. Encara que en un principi només era part d'aquest projecte, es va veure que era molt útil, i va començar a ser part d'altres projectes importants. Actualment forma part de quasi tots els sistemes Unix i GNU/Linux i altres sistemas com Microsoft Windows. Encara que sigui present, es considera aquest protocol obsolet, degut a l'aparició d'altres sistemes més potents(systemd) i la poca eficiència a l'hora de la manipulació dels logs generats. 
+El protocol va ser creat per Eric Allman, com a part del projecte Sendmail. 
+Encara que en un principi només era part d'aquest projecte, es va veure que era molt útil, i 
+va començar a ser part d'altres projectes importants. Actualment forma part de quasi tots els 
+sistemes Unix i GNU/Linux i altres sistemas com Microsoft Windows. Encara que sigui present, es 
+considera aquest protocol obsolet, degut a l'aparició d'altres sistemes més potents(systemd) i la 
+poca eficiència a l'hora de la manipulació dels logs generats. 
 
 #### Estructura del missatge
 
@@ -20,46 +28,49 @@ El missatge que genera el syslog segueix el rfc3164, el qual indica que els miss
 
 La prioritat és un número de 8 bits que indica el recurs(qui ha generat el missatge) i el nivell d'importància. Els còdis del recurs són:  
 
-    * 0: Missatges del kernel 
-    * 1: Missatges de l'usuari
-    * 2: Sistema de correo
-    * 3: Dimonis del sistema
-    * 4: Seguretat
-    * 5: Missatges generats pel mateix dimoni syslogd
-    * 6: Subsistema d'impressió
-    * 7: Subsistema de missatges de xarxa
-    * 8: Susbistema UUCP
-    * 9: Susbistema d'hora
-    * 10: Seguretat
-    * 11: Dimoni del ftp
-    * 12: Susbsitema NTP
-    * 13: Inspecció del registre
-    * 14: Alertas en el registre
-    * 15: Dimoni del sistema d'hora
-    * 16-23: Ús local
+0.  Missatges del kernel 
+1. Missatges de l'usuari
+2. Sistema de correo
+3. Dimonis del sistema
+4. Seguretat
+5. Missatges generats pel mateix dimoni syslogd
+6. Subsistema d'impressió
+7. Subsistema de missatges de xarxa
+8. Susbistema UUCP
+9. Susbistema d'hora
+10. Dimoni del ftp
+11. Susbsitema NTP
+12. Inspecció del registre
+13. Alertas en el registre
+14. Dimoni del sistema d'hora
+15. Dimoni del rellotge
+16. Ús local
 
 Codis del nivell d'importància: 
 
-    * 0: Emergència, el sistema està inutilitzable
-    * 1: Alerta, actuar inmediatament
-    * 2: Crític, condicions crítiques
-    * 3: Error
-    * 4: Perill
-    * 5: Avís, normal però caldia actuar
-    * 6: Informació
-    * 7: Missatges de baix nivell
+0. Emergència, el sistema està inutilitzable
+1. Alerta, actuar inmediatament
+2. Crític, condicions crítiques
+3. Error
+4. Perill
+5. Avís, normal però caldia actuar
+6. Informació
+7. Missatges de baix nivell
 
 ##### Capcelera
 
-És el segon camp, el qual conté, el temps en format Mmm dd hh:mm:ss, seguit del nom del host, o en el seu defecte la direcció ip.
+És el segon camp, el qual conté, el temps en format Mmm dd hh:mm:ss, 
+seguit del nom del host, o en el seu defecte la direcció ip.
 
 ##### Text
 
-És l'últim camp de log, que dona informació sobre el procés que ha generat el log. Normalment comença amb el nom del procés que l'ha generat, seguit d'un caràcter no alfanumèric com ":" o un espai. Per últim el propi text que conté el contingut real del missatge.
+És l'últim camp de log, que dona informació sobre el procés que ha generat el log. 
+Normalment comença amb el nom del procés que l'ha generat, seguit d'un caràcter no 
+alfanumèric com ":" o un espai. Per últim el propi text que conté el contingut real del missatge.
 
 Podem veure una línia d'exemple d'un log:
 
-*May  2 12:50:35 i10 pengine[12009]: notice: LogActions: Move    ClusterIP	(Started i11 -> i10)*
+    May  2 12:50:35 i10 pengine[12009]: notice: LogActions: Move    ClusterIP	(Started i11 -> i10)
 
 ### Rsyslog
  
@@ -83,7 +94,10 @@ A l'hora de configurar els hosts, utilizarem el [manual](https://access.redhat.c
 
 #### Servidor
 
-En el nostre cas, tenim desactivat tant el selinux com el firewall(no és el més indicat, però es un entorn de proves). El fitxer de configuració de rsyslog és el /etc/rsyslog.conf. En el nostre cas el [fitxer](https://github.com/etj-projecte-2016/enrutament/blob/master/rsyslog.conf) quedaria d'aquesta manera. A l'hora de filtrar el que volem i com ho volem, tindriem que utilitzar expressions regulars. Per exemple:  
+En el nostre cas, tenim desactivat tant el selinux com el firewall(no és 
+el més indicat, però es un entorn de proves). El fitxer de configuració de rsyslog és el /etc/rsyslog.conf. 
+En el nostre cas el [fitxer](https://github.com/etj-projecte-2016/enrutament/blob/master/rsyslog.conf) quedaria d'aquesta manera. 
+A l'hora de filtrar el que volem i com ho volem, tindriem que utilitzar expressions regulars. Per exemple:  
 
     mail.* /var/log/messages 
     authpriv.* /var/log/secure
@@ -101,7 +115,12 @@ Però també tenim l'opció de crear templates:
 	*.* ?Msgs
 	& ~ 
  
-Amb l'opció $template, creem una variable que es diu TemlAuth, i dessarà tot el que acabi per TmplAuth a, /var/log/HOSTS/nom-del-host/nom-del-programa. Amb aquesta configuració estem dessant per cada hosts un log per cada programa que els generi, i a més tot el que es generi en un log concentrat que es diu messages. 
+Amb l'opció $template, creem una variable que es diu TemlAuth, i dessarà tot el que acabi per TmplAuth a, /var/log/HOSTS/nom-del-host/nom-del-programa. 
+Amb aquesta configuració estem dessant per cada hosts un log per cada programa que els generi, i a més tot el que es generi en un log concentrat que es diu messages. 
+
+Acabat d'editar el fitxer fem un restart del servei:
+
+   systemctl restart rsyslog
 
 Hi ha moltes configuracions possibles, depenent del que et convingui més, voldràs tenir tot en un fitxer o per contra desglossat en diferents.
 
@@ -139,7 +158,7 @@ i afegir la següent linia:
 
     kern.*		/var/log/kernel 
 
-Fem un restart del servei syslog y rsyslog.
+Fem un restart del servei rsyslog.
 
 Per d'altra banda, ens havien demanat que aquests logs estiguin un dia 
 en el propi hosts. Això ho podem fer amb logrotate.
@@ -360,7 +379,18 @@ Per últim fem un restart del servei:
     
 Amb tot això ja tenim tot configurat per tranferir els logs amb journal.
 
-### Exploració del logs amb journalctl
+#### Configuració https amb journal
+
+Journald ens dona la opció d'enviar els logs via https. Això és el que diu 
+la documentació. Ara bé, a l'hora de configurar-ho, el dimoni journal-upload
+no consegueix servir els logs al journal-remote. Amb l'ordre netstat podem 
+veure que el servidor te obert el port per defecte, i a més pot rebre dades.
+El missatge d'error que ens dona el journal-remote al fer un status del servei,
+és que hi ha un error en el microhttpd, que utilitzen els dos dimonis per
+transferir els logs. No hi ha molta informació a internet sobre aquest problema,
+relacionat amb journald.  
+
+### Exploració dels logs amb journalctl
 
 Per defecte tots els usuaris tenen permis per poder inspeccionar els seus
 logs privats. Per defecte els logs estan a /var/log/journal/ID/. Per poder
@@ -373,4 +403,141 @@ Quan cridem a journalctl amb el terminal sense opcions, per defecte
 ens mostra tots els logs que hi ha en el sistema, del path per defecte on 
 estan allotjats. 
 
+Una de les característiques que dona journald respecte a syslog es la inclusió de,
+la hora local del sistema. Per veure les que suporta journalctl:
+
+    timedatectl list-timezones
+
+I per fixar-la com a predeterminada:
+
+    timedatectl set-timezone "zone"
+    
+Una altra opció interesant és veure el time-stamp en format UTC:
+
+    journalctl --utc
+
+#### Filtrat
+
+Hi ha moltes opcions de filtrat, però he recollit les que són més importants
+
+##### Per boots
+
+Per veure els missatges des del últim boot:
+
+    journalctl -b
+
+Per veure els tots els boots de la màquina:
+
+   journalctl --list-boots
+
+Amb això veurem el número de boots de la màquina, i amb l'opció -b,
+podrem escollir el boot que indiquem. 
+
+##### Per data
+
+Journalctl permet el filtrat posant límits com "fins" ( --until ) o 
+"des de" ( --since ). El format de la data ha de ser:
+
+    YYY-MM-DD HH:MM:SS
+    
+Si la segona part és absent, s'utilitzarà "00:00:00".
+
+Un exemple de filtrat per data seria:
+
+    journalctl --since "2015-01-10" --until "2015-02-10"
+
+##### Per servei 
+
+Possiblement és l'opció més utilitzada:
+
+    journalctl -u httpd 
+    
+També podem combinar aquests filtres amb els anteriors:
+
+
+    journalctl -u http --since "2016-10-10"
+    
+##### Per pid,uid o gid
+
+Per pid:
+
+    journalctl '_PID=8088
+
+Per uid:
+
+    journalctl '_UID=33
+    
+Per gid:
+
+    journalctl '_GID=0
+
+
+##### Kernel
+
+    journalctl -k
+
+#### Modificació 
+
+Per defecte journalctl ens mostra els logs expandits, del tal manera que 
+ocupen tota la pantalla i per veure tot el missatge a vegades tenim que 
+desplaçar a la dretra el terminal. Per fer que això no passi:
+
+    journalctl --no-full
+    
+Per deixar-ho com estava:
+
+    journalctl -a
+
+Si volem processar la inforamció, tenim que treure el paginat del journalctl.
+Per fer-ho:
+
+   journalctl --no-pager
+    
+#### Formats de sortida
+
+Si volguessim un format de sortida diferent al per defecte:
+
+    journalctl -o "format"
+
+Els més comuns són:
+
+* export ( format binari )
+* json i json-pretty
+* short ( format syslog )
+* verbose
+
+
+Per últim també cal mencionar que aquestes opcions seràn aplicades al logs
+generats en el path per defecte. Si volem que tinguin efecte en un log diferent:
+
+    journalctl --file 
+
+O també un path:
+
+    journalctl --directory
+    
+### Manteniment dels logs amb journald
+
+Per configurar el manteniment que farà journald amb els logs, tenim que editar
+el fitxer /etc/systemd/journald.conf
+
+Els logs que genera journald poden ser: "volatile", guardats només en memòria.
+"Persistent" guardats en el disc. Aquests es guardaran en /var/log/journal.
+Si el directori no existeix, no es guardaran els logs. "Auto", el mateix comportament 
+que "Persistent" però si el directori no existeix el crea. Per últim "None", que no guarda
+logs.
+
+Les ordres més importants són:
+
+* SystemMaxUse: Especifica l'espai màxim que pot utilitzar journald en disc.
+* SystemMaxFileSize: Quin tamany màxim pot tenir un log abans de ser rotat.
+* SplitMode: Ens permet fer un split dels logs per: uid, login and none.
+* Compress: Valor boolea que permet comprimir o no els logs.
+
+Pér veure el disc ocupat pels logs:
+
+    journalctl --disk-usage
+    
+Journalctl no fa un rotate con syslog. Aquest només te un fitxer i segons la 
+mida màxima que li hem indicat, va guardant la informació, esborrant la antiga.    
 
