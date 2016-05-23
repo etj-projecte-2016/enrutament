@@ -11,8 +11,8 @@ section.has-light-background, section.has-light-background h1, section.has-light
  * GLOBAL STYLES
  *********************************************/
 body {
-  background: #222;
-  background-color: #222; }
+  background: #021C1E;
+  background-color: #021C1E; }
 
 .reveal {
   font-family: "Source Sans Pro", Helvetica, sans-serif;
@@ -33,30 +33,34 @@ body {
 /*********************************************
  * HEADERS
  *********************************************/
+
 .reveal h1,
-.reveal h2,
 .reveal h3,
+.reveal h2,
 .reveal h4,
 .reveal h5,
 .reveal h6 {
   margin: 0 0 20px 0;
   color: #fff;
-  font-family: "Source Sans Pro", Helvetica, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, "Liberation Sans", Calibri, Arial, sans-serif; /* Sans-serif headers */
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: normal;
   text-transform: uppercase;
   text-shadow: none;
   word-wrap: break-word; }
-
+  
 .reveal h1 {
-  font-size: 2.5em; }
+  font-size: 2.0em;
+   }
 
 .reveal h2 {
-  font-size: 1.6em; }
+  font-size: 1.6em;
+  text-transform: none; }
 
 .reveal h3 {
-  font-size: 1.3em; }
+  font-size: 1.0em;
+  text-transform: none; }
 
 .reveal h4 {
   font-size: 1em; }

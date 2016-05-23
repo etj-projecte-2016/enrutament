@@ -1,5 +1,5 @@
-% Eric Torres
-% Enrutament de logs
+% Enrutament i concentració de logs amb Syslog i Journal
+% Eric Torres Jara
 % 2016
 
 # Titol 1
