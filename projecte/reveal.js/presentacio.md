@@ -100,7 +100,9 @@ systemctl status rsyslogd
 * Mirar /var/log/HOSTS/%HOSTNAME% 
 
 ``` 
-ll /var/log/HOSTS/\%HOSTNAME\%```
+ll /var/log/HOSTS/HOSTNAME
+
+```
 
 ## Configuració del client
 
@@ -108,7 +110,76 @@ Només cal indicar la IP del servidor i que volem enviar
 
 ```
 *.* @192.168.2.40:514
+
 ```
 
+* Fer el restart del rsyslogd
 
+## Exemple 
+
+Ens demanen que cal tenir un dia els logs del kernel al propi client. 
+A més a un servidor tenir un backup de "x" dies dels logs comprimits.
+
+## Exemple 
+
+* Tenim que generar aquests logs en un fitxer.
+
+```
+kern.*		/var/log/kernel
+``` 
+
+## Exemple: logrotate
+
+Eïna d'administració de logs, que permet rotació d'aquests, compressió, 
+esborrar-los etc.
+
+* Rotar /var/log/kernel
+* Diariament
+* Cromprimit
+* 2 fitxers previs
+
+## Exemple: logrotate(2)
+
+```
+/var/log/kernel{
+    missingok
+    notifempty
+    sharedscripts
+    rotate 2
+    hourly
+    compress
+    dateext
+    dateformat %Y%m%d
+    postrotate
+    	/bin/touch /var/log/kernel
+    endscript
+}
+```
+## Exemple: logrotate(3)
+
+* Més ràpid, cada minut
+
+* Crear un script que executarà logrotate
+
+```
+#!/bin/sh
+
+/usr/sbin/logrotate -vf /etc/logrotate.d/kernel
+```
+
+## Exemple: logrotate(4)
+
+* Posar al cron aquest script i que s'executi cada minut.
+
+```
+# Executa  la rotació de logs cada minut
+*/1 * * * * root	/var/tmp/rotate1min.sh
+```
+
+## Exemple: rsysnc(4)
+
+Sincronitzar els logs a un servidor extern i guardar-los 7 dies.
+
+* Rsysnc per sincronitzar carpetes remotes
+* Cron per sincronitzar-les cada x minuts
 

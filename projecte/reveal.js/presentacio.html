@@ -158,13 +158,80 @@
 <ul>
 <li>Mirar /var/log/HOSTS/%HOSTNAME%</li>
 </ul>
-<pre><code>ll /var/log/HOSTS/\%HOSTNAME\%```
-
-## Configuració del client
-
-Només cal indicar la IP del servidor i que volem enviar
+<pre><code>ll /var/log/HOSTS/HOSTNAME
 </code></pre>
-<p><em>.</em> @192.168.2.40:514 ```</p>
+</section>
+<section id="configuració-del-client" class="level2">
+<h2>Configuració del client</h2>
+<p>Només cal indicar la IP del servidor i que volem enviar</p>
+<pre><code>*.* @192.168.2.40:514
+</code></pre>
+<ul>
+<li>Fer el restart del rsyslogd</li>
+</ul>
+</section>
+<section id="exemple-1" class="level2">
+<h2>Exemple</h2>
+<p>Ens demanen que cal tenir un dia els logs del kernel al propi client. A més a un servidor tenir un backup de &quot;x&quot; dies dels logs comprimits.</p>
+</section>
+<section id="exemple-2" class="level2">
+<h2>Exemple</h2>
+<ul>
+<li>Tenim que generar aquests logs en un fitxer.</li>
+</ul>
+<pre><code>kern.*      /var/log/kernel</code></pre>
+</section>
+<section id="exemple-logrotate" class="level2">
+<h2>Exemple: logrotate</h2>
+<p>Eïna d'administració de logs, que permet rotació d'aquests, compressió, esborrar-los etc.</p>
+<ul>
+<li>Rotar /var/log/kernel</li>
+<li>Diariament</li>
+<li>Cromprimit</li>
+<li>2 fitxers previs</li>
+</ul>
+</section>
+<section id="exemple-logrotate2" class="level2">
+<h2>Exemple: logrotate(2)</h2>
+<pre><code>/var/log/kernel{
+    missingok
+    notifempty
+    sharedscripts
+    rotate 2
+    hourly
+    compress
+    dateext
+    dateformat %Y%m%d
+    postrotate
+        /bin/touch /var/log/kernel
+    endscript
+}</code></pre>
+</section>
+<section id="exemple-logrotate3" class="level2">
+<h2>Exemple: logrotate(3)</h2>
+<ul>
+<li><p>Més ràpid, cada minut</p></li>
+<li><p>Crear un script que executarà logrotate</p></li>
+</ul>
+<pre><code>#!/bin/sh
+
+/usr/sbin/logrotate -vf /etc/logrotate.d/kernel</code></pre>
+</section>
+<section id="exemple-logrotate4" class="level2">
+<h2>Exemple: logrotate(4)</h2>
+<ul>
+<li>Posar al cron aquest script i que s'executi cada minut.</li>
+</ul>
+<pre><code># Executa  la rotació de logs cada minut
+*/1 * * * * root    /var/tmp/rotate1min.sh</code></pre>
+</section>
+<section id="exemple-rsysnc4" class="level2">
+<h2>Exemple: rsysnc(4)</h2>
+<p>Sincronitzar els logs a un servidor extern i guardar-los 7 dies.</p>
+<ul>
+<li>Rsysnc per sincronitzar carpetes remotes</li>
+<li>Cron per sincronitzar-les cada x minuts</li>
+</ul>
 </section>
 </section>
 </div>
