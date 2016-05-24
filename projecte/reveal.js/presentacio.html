@@ -133,7 +133,7 @@
 </section>
 <section id="configuració-del-servidori103" class="level2">
 <h2>Configuració del servidor(i10)(3)</h2>
-<p>Les linies que cal configurar són:</p>
+<p>El fitxer és /etc/rsyslog.conf:</p>
 <pre><code>    $template TmplAuth, &quot;/var/log/HOSTS/%HOSTNAME%/%PROGRAMNAME%&quot;
     $template TmplMsg, &quot;/var/log/HOSTS/%HOSTNAME%/%PROGRAMNAME%&quot;
     $template Msgs, &quot;/var/log/HOSTS/%HOSTNAME%/messages&quot;
@@ -161,8 +161,8 @@
 <pre><code>ll /var/log/HOSTS/HOSTNAME
 </code></pre>
 </section>
-<section id="configuració-del-client" class="level2">
-<h2>Configuració del client</h2>
+<section id="configuració-del-clienti11" class="level2">
+<h2>Configuració del client(i11)</h2>
 <p>Només cal indicar la IP del servidor i que volem enviar</p>
 <pre><code>*.* @192.168.2.40:514
 </code></pre>
@@ -193,6 +193,7 @@
 </section>
 <section id="exemple-logrotate2" class="level2">
 <h2>Exemple: logrotate(2)</h2>
+<p>El fitxer és /var/log/kernel:</p>
 <pre><code>/var/log/kernel{
     missingok
     notifempty
@@ -232,6 +233,221 @@
 <li>Rsysnc per sincronitzar carpetes remotes</li>
 <li>Cron per sincronitzar-les cada x minuts</li>
 </ul>
+</section>
+<section id="exemple-rsysnc5" class="level2">
+<h2>Exemple: rsysnc(5)</h2>
+<pre><code># Executa  la rotació de logs cada minut
+*/1 * * * * root    /var/tmp/sync-01.sh</code></pre>
+<pre><code>/usr/bin/rsync -rtvz /var/log/kernel* root@i10:/var/tmp/backup</code></pre>
+</section>
+</section>
+<section id="exploració-de-logs-generats-amb-syslog" class="level1">
+<h1>Exploració de logs generats amb syslog</h1>
+<section id="tipús-que-hem-generat" class="level2">
+<h2>Tipús que hem generat</h2>
+<ul>
+<li>Log massiu</li>
+<li>Logs desglossats</li>
+</ul>
+</section>
+<section id="eïnes" class="level2">
+<h2>Eïnes</h2>
+<ul>
+<li>Grep</li>
+<li>Cut</li>
+</ul>
+</section>
+</section>
+<section id="centralització-de-logs-amb-systemd" class="level1">
+<h1>Centralització de logs amb Systemd</h1>
+<section id="systemd" class="level2">
+<h2>Systemd</h2>
+<ul>
+<li>Conjunt de dimonis d'administració del sistema</li>
+<li>Substitueix l'antic init</li>
+<li>Procés amb PID 1</li>
+</ul>
+</section>
+<section id="journald" class="level2">
+<h2>Journald</h2>
+<ul>
+<li>Fitxers en binari</li>
+<li>/var/log/journal</li>
+<li>journaltcl</li>
+</ul>
+</section>
+<section id="estructura-del-missatge-1" class="level2">
+<h2>Estructura del missatge</h2>
+<ul>
+<li>Missatges d'error més grans i tenen un color vermell i en negreta</li>
+<li>Time stamp convertir a hora local</li>
+<li>Tots els logs són mostrats, també els rotats</li>
+<li>Inici de nou boot</li>
+</ul>
+</section>
+<section id="exemple-3" class="level2">
+<h2>Exemple</h2>
+<pre><code>*May 16 16:24:58 localhost.localdomain su[6439]: (to root) eric on pts/3*</code></pre>
+</section>
+<section id="enrutament-amb-systemd" class="level2">
+<h2>Enrutament amb systemd</h2>
+<ul>
+<li>2 màquines virtuals amb Fedora 23</li>
+<li>Systemd-journal-remote</li>
+<li>Systemd-journal-upload</li>
+</ul>
+</section>
+<section id="configuració-del-client" class="level2">
+<h2>Configuració del client</h2>
+<p>Paquet necessari és:</p>
+<pre><code>yum install -y systemd-journal-gateway</code></pre>
+<p>Cal fer:</p>
+<pre><code>systemctl enable systemd-journal-upload.service
+systemctl stop firewalld
+systemctl disable firewalld
+setenforce 0</code></pre>
+</section>
+<section id="configuració-del-client-2" class="level2">
+<h2>Configuració del client (2)</h2>
+<p>Editem /etc/systemd/journal-upload.conf amb:</p>
+<pre><code>URL=http://172.16.0.10:19532</code></pre>
+<p>Afegim systemd-journal-remote al grup systemd-journal:</p>
+<pre><code>usermod -a -G systemd-journal systemd-journal-remote </code></pre>
+</section>
+<section id="configuració-del-servidor" class="level2">
+<h2>Configuració del servidor</h2>
+<ul>
+<li>Mode actiu ( demana els logs al client )</li>
+<li>Mode passiu ( espera conexions )</li>
+</ul>
+<p>En el meu cas només he pogut implementar mode passiu.</p>
+</section>
+<section id="configuració-del-servidor-2" class="level2">
+<h2>Configuració del servidor (2)</h2>
+<p>Quin port està escoltant, editem /etc/systemd/system/sockets.target.wants/systemd-journal-remote.socket:</p>
+<pre><code>[Socket]
+ListenStream=19532</code></pre>
+</section>
+<section id="configuració-del-servidor-3" class="level2">
+<h2>Configuració del servidor (3)</h2>
+<p>Protocol i carpeta destinada als logs:</p>
+<pre><code>vim /lib/systemd/system/systemd-journal-remote.service</code></pre>
+<p>I editem la següent linia:</p>
+<pre><code>[Service]
+ExecStart=/usr/lib/systemd/systemd-journal-remote \
+          --listen-http=-3 \
+          --output=/var/log/journal/remote/</code></pre>
+</section>
+<section id="configuració-del-servidor-4" class="level2">
+<h2>Configuració del servidor (4)</h2>
+<p>Assegurar-nos de que el directori existeix:</p>
+<pre><code>mkdir /var/log/journal/remote
+chown -R systemd-journal-remote /var/log/journal/remote</code></pre>
+</section>
+</section>
+<section id="exploració-de-logs-amb-journald" class="level1">
+<h1>Exploració de logs amb journald</h1>
+<section id="journalctl" class="level2">
+<h2>Journalctl</h2>
+<ul>
+<li>Cada usuari pot veure el seu log</li>
+<li><p>systemd-journal, adm o wheel</p>
+<pre><code>usermod -a -G wheel pere</code></pre></li>
+</ul>
+</section>
+<section id="filtrat" class="level2">
+<h2>Filtrat</h2>
+<ul>
+<li>Per boot</li>
+<li>Per data</li>
+<li>Per servei</li>
+<li>Per pid,uid o gid</li>
+<li>Kernel</li>
+</ul>
+</section>
+<section id="modificació" class="level2">
+<h2>Modificació</h2>
+<ul>
+<li>Per defecte en format less</li>
+<li>Ho podem treure per tenir un format clàssic</li>
+</ul>
+</section>
+<section id="formats-de-sortida" class="level2">
+<h2>Formats de sortida</h2>
+<p>journalctl -o &quot;format&quot;</p>
+<ul>
+<li>export ( format binari )</li>
+<li>json i json-pretty</li>
+<li>short ( format syslog )</li>
+<li>verbose</li>
+</ul>
+</section>
+<section id="canviar-el-desti-de-les-modificacions" class="level2">
+<h2>Canviar el desti de les modificacions</h2>
+<ul>
+<li><p>Seleccionar el fitxer que volguem:</p>
+<pre><code>journalctl --file </code></pre></li>
+<li><p>Seleccionar el directori:</p>
+<pre><code>journalctl --directory</code></pre></li>
+</ul>
+</section>
+</section>
+<section id="manteniment-dels-logs-amb-journald" class="level1">
+<h1>Manteniment dels logs amb journald</h1>
+<section id="configuració-del-dimoni" class="level2">
+<h2>Configuració del dimoni</h2>
+<p>/etc/systemd/journald.conf</p>
+<ul>
+<li>volatile</li>
+<li>Persistent</li>
+<li>Auto</li>
+<li>None</li>
+</ul>
+</section>
+<section id="generació-dels-logs" class="level2">
+<h2>Generació dels logs</h2>
+<ul>
+<li>Només un fitxer general del sistema</li>
+<li>Split per uid o login</li>
+</ul>
+</section>
+<section id="rotate" class="level2">
+<h2>Rotate</h2>
+<ul>
+<li>SystemMaxUse: Especifica l'espai màxim que pot utilitzar journald en disc.</li>
+<li>SystemMaxFileSize: Quin tamany màxim pot tenir un log abans de ser rotat.</li>
+<li>SplitMode: Ens permet fer un split dels logs per: uid, login and none.</li>
+</ul>
+<pre><code>journalctl --disk-usage</code></pre>
+</section>
+</section>
+<section id="conclusions" class="level1">
+<h1>Conclusions</h1>
+<section id="syslog-1" class="level2">
+<h2>Syslog</h2>
+<ul>
+<li>Segueix la filosofia UNIX de un programa una tasca</li>
+<li>Si no t'agrada una programa afegeixes un que la faci</li>
+<li>Obsolet a l'hora de la exploració de logs</li>
+<li>Enrutament bastant entenedor</li>
+<li>Gran quantitat d'informació</li>
+</ul>
+</section>
+<section id="journald-1" class="level2">
+<h2>Journald</h2>
+<ul>
+<li>Un únic programa que s'encarrega de tot</li>
+<li>Exploració de logs eficient</li>
+<li>No és tan configurable</li>
+<li>No hi ha gaire informació a internet</li>
+<li>Enrutament encara no està del tot acabat</li>
+</ul>
+</section>
+</section>
+<section id="gràcies-per-la-vostra-atenció" class="level1">
+<h1>Gràcies per la vostra atenció</h1>
+<section id="preguntes" class="level2">
+<h2>Preguntes?</h2>
 </section>
 </section>
 </div>

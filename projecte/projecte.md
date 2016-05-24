@@ -224,6 +224,19 @@ amb un directori remot (en aquest cas el host i10, que és on concentrem els log
 
 Amb això tindriem ja finalitzat l'exemple que vam proposar.
 
+
+### Exploració de logs generats per syslog
+
+En el nostre cas hem creat tant un fitxer on es concentren tots els logs generats
+per rsyslog, com per cada hosts, i per cada programa un log.
+
+En el cas del log massiu, tindriem que utilitzar técniques com grep o cut, 
+per poder saber de quin hosts són que volem. A més si volem concretament
+d'un servei tindriem que fer un altre grep per extreure'l.
+
+En el cas dels logs desglossats, només tindriem que fer un grep pel servei 
+que volguessim.
+
 ## Centralització de logs amb Systemd
 
 ### Systemd
@@ -244,7 +257,7 @@ millor rendiment en indexació, per tant d'exploració, i per últim d'integrita
 d'aquests. Per contra no podem explorar-los amb un simple cat. Per per-ho,
 tenim un client que utilitza systemd per mostrar els logs.
 
-#### Journalctl
+#### Journald
 
 ##### Estructura del missatge
 
@@ -367,7 +380,7 @@ Tenim que assegurar-nos que el directori on aniràn els logs existeixi, de lo
 contrari no arrencarà el servei:
 
     mkdir /var/log/journal/remote
-    chown systemd-journal-remote /var/log/journal/remote
+    chown -R systemd-journal-remote /var/log/journal/remote
     
     
 El propi fitxer de configuració del servei a /etc/systemd/journal-remote.conf
@@ -539,5 +552,5 @@ Pér veure el disc ocupat pels logs:
     journalctl --disk-usage
     
 Journalctl no fa un rotate con syslog. Aquest només te un fitxer i segons la 
-mida màxima que li hem indicat, va guardant la informació, esborrant la antiga.    
+mida màxima que li hem indicat, va guardant la informació, esborrant l'antiga.    
 

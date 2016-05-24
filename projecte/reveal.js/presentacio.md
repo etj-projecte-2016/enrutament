@@ -71,7 +71,7 @@ Eś una millora de syslogd ja obsolet. Utilitza el mateix RFC però amb millores
   
 ## Configuració del servidor(i10)(3)
 
-Les linies que cal configurar són:
+El fitxer és /etc/rsyslog.conf:
 
 ```
     $template TmplAuth, "/var/log/HOSTS/%HOSTNAME%/%PROGRAMNAME%"
@@ -104,7 +104,7 @@ ll /var/log/HOSTS/HOSTNAME
 
 ```
 
-## Configuració del client
+## Configuració del client(i11)
 
 Només cal indicar la IP del servidor i que volem enviar
 
@@ -139,6 +139,8 @@ esborrar-los etc.
 * 2 fitxers previs
 
 ## Exemple: logrotate(2)
+
+El fitxer és /var/log/kernel:
 
 ```
 /var/log/kernel{
@@ -182,4 +184,220 @@ Sincronitzar els logs a un servidor extern i guardar-los 7 dies.
 
 * Rsysnc per sincronitzar carpetes remotes
 * Cron per sincronitzar-les cada x minuts
+
+## Exemple: rsysnc(5)
+
+```
+# Executa  la rotació de logs cada minut
+*/1 * * * * root	/var/tmp/sync-01.sh
+```
+
+```
+/usr/bin/rsync -rtvz /var/log/kernel* root@i10:/var/tmp/backup
+```
+
+# Exploració de logs generats amb syslog
+
+## Tipús que hem generat
+
+* Log massiu
+* Logs desglossats
+
+## Eïnes
+
+* Grep
+* Cut
+
+# Centralització de logs amb Systemd
+
+## Systemd
+
+* Conjunt de dimonis d'administració del sistema
+* Substitueix l'antic init
+* Procés amb PID 1
+
+## Journald 
+
+* Fitxers en binari
+* /var/log/journal
+* journaltcl
+
+## Estructura del missatge
+
+* Missatges d'error més grans i tenen un color vermell i en negreta
+* Time stamp convertir a hora local
+* Tots els logs són mostrats, també els rotats
+* Inici de nou boot
+
+## Exemple
+
+```
+*May 16 16:24:58 localhost.localdomain su[6439]: (to root) eric on pts/3*
+```
+
+## Enrutament amb systemd
+
+* 2 màquines virtuals amb Fedora 23
+* Systemd-journal-remote
+* Systemd-journal-upload
+
+## Configuració del client
+
+Paquet necessari és:
+
+```
+yum install -y systemd-journal-gateway
+```
+Cal fer:
+
+```
+systemctl enable systemd-journal-upload.service
+systemctl stop firewalld
+systemctl disable firewalld
+setenforce 0
+```
+
+## Configuració del client (2)
+
+Editem /etc/systemd/journal-upload.conf amb:
+
+```
+URL=http://172.16.0.10:19532
+```
+Afegim systemd-journal-remote al grup systemd-journal:
+```
+usermod -a -G systemd-journal systemd-journal-remote 
+```
+
+## Configuració del servidor
+
+* Mode actiu ( demana els logs al client )
+* Mode passiu ( espera conexions )
+
+En el meu cas només he pogut implementar mode passiu.
+
+## Configuració del servidor (2)
+
+Quin port està escoltant, editem /etc/systemd/system/sockets.target.wants/systemd-journal-remote.socket:
+
+```
+[Socket]
+ListenStream=19532
+```
+
+## Configuració del servidor (3)
+
+Protocol i carpeta destinada als logs:
+
+```
+vim /lib/systemd/system/systemd-journal-remote.service
+```
+I editem la següent linia:
+```
+[Service]
+ExecStart=/usr/lib/systemd/systemd-journal-remote \
+          --listen-http=-3 \
+          --output=/var/log/journal/remote/
+```
+
+## Configuració del servidor (4)
+
+Assegurar-nos de que el directori existeix:
+
+```
+mkdir /var/log/journal/remote
+chown -R systemd-journal-remote /var/log/journal/remote
+```
+
+# Exploració de logs amb journald
+
+## Journalctl
+
+* Cada usuari pot veure el seu log
+* systemd-journal, adm o wheel
+```
+usermod -a -G wheel pere
+```
+
+## Filtrat
+
+* Per boot
+* Per data
+* Per servei
+* Per pid,uid o gid
+* Kernel
+
+## Modificació 
+
+* Per defecte en format less
+* Ho podem treure per tenir un format clàssic
+
+## Formats de sortida
+
+journalctl -o "format"
+
+* export ( format binari )
+* json i json-pretty
+* short ( format syslog )
+* verbose
+
+## Canviar el desti de les modificacions
+
+* Seleccionar el fitxer que volguem:
+```
+journalctl --file 
+```
+* Seleccionar el directori:
+```
+journalctl --directory
+```
+
+# Manteniment dels logs amb journald
+
+## Configuració del dimoni
+
+/etc/systemd/journald.conf
+
+* volatile
+* Persistent
+* Auto
+* None
+
+## Generació dels logs
+
+* Només un fitxer general del sistema
+* Split per uid o login
+
+## Rotate
+
+* SystemMaxUse: Especifica l'espai màxim que pot utilitzar journald en disc.
+* SystemMaxFileSize: Quin tamany màxim pot tenir un log abans de ser rotat.
+* SplitMode: Ens permet fer un split dels logs per: uid, login and none.
+
+```
+journalctl --disk-usage
+```
+
+# Conclusions
+
+## Syslog
+
+* Segueix la filosofia UNIX de un programa una tasca
+* Si no t'agrada una programa afegeixes un que la faci
+* Obsolet a l'hora de la exploració de logs
+* Enrutament bastant entenedor
+* Gran quantitat d'informació
+
+## Journald
+
+* Un únic programa que s'encarrega de tot
+* Exploració de logs eficient
+* No és tan configurable
+* No hi ha gaire informació a internet
+* Enrutament encara no està del tot acabat
+
+# Gràcies per la vostra atenció
+
+## Preguntes?
+
 
