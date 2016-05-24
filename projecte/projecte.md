@@ -96,7 +96,7 @@ A l'hora de configurar els hosts, utilizarem el [manual](https://access.redhat.c
 
 En el nostre cas, tenim desactivat tant el selinux com el firewall(no és 
 el més indicat, però es un entorn de proves). El fitxer de configuració de rsyslog és el /etc/rsyslog.conf. 
-En el nostre cas el [fitxer](https://github.com/etj-projecte-2016/enrutament/blob/master/rsyslog.conf) quedaria d'aquesta manera. 
+En el nostre cas el [fitxer](https://github.com/etj-projecte-2016/enrutament/blob/master/projecte/rsyslog.conf) quedaria d'aquesta manera. 
 A l'hora de filtrar el que volem i com ho volem, tindriem que utilitzar expressions regulars. Per exemple:  
 
     mail.* /var/log/messages 
@@ -128,7 +128,7 @@ Hi ha moltes configuracions possibles, depenent del que et convingui més, voldr
 
 Per d'altra banda cal configurar el client per que enviï els logs al servidor.
 
-El [fitxer](https://github.com/etj-projecte-2016/enrutament/blob/master/rsyslog.conf.client) quedaria d'aquesta manera.
+El [fitxer](https://github.com/etj-projecte-2016/enrutament/blob/master/projecte/rsyslog.conf.client) quedaria d'aquesta manera.
 
 Cal configurar:
 
@@ -182,7 +182,7 @@ dos fitxers previs. A més fara els fitxers comprimits.
 
 Per fer-ho més ràpid, editem un fitxer dins de [/etc/cron.d/rotate-logs](https://github.com/etj-projecte-2016/enrutament/blob/master/projecte/rotate-logs),
 que executarà un script cada minut amb l'user root. El fitxer el qüestió
-és [aquest](). 
+és [aquest](https://github.com/etj-projecte-2016/enrutament/blob/master/projecte/rotate1min.sh). 
 
 A més, si no volem esperar cada minut, podem fer l'ordre:
 
