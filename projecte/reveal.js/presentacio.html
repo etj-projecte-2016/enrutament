@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+
+<title>Enrutament i concentració de logs amb Syslog i Journal</title>
+
+<meta name="description" content="Enrutament i concentració de logs amb Syslog i Journal">    
+
+  <meta name="author" content="Eric Torres Jara" />
+
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<link rel="stylesheet" href="css/reveal.css">
+  <link rel="stylesheet" href="css/theme/black.css" id="theme">
+
+
+<!-- For syntax highlighting -->
+  <link rel="stylesheet" href="lib/css/zenburn.css">
+
+
+<!-- If the query includes 'print-pdf', use the PDF print sheet -->
+<script>
+  document.write( '<link rel="stylesheet" href="css/print/' +
+    ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + 
+    '.css" type="text/css" media="print">' );
+</script>
+
+<!--[if lt IE 9]>
+<script src="lib/js/html5shiv.js"></script>
+<![endif]-->
+</head>
+
+<body>
+
+<div class="reveal">
+
+<!-- Any section element inside of this container is displayed as a slide -->
+<div class="slides">
+
+<section>
+<h1>Enrutament i concentració de logs amb Syslog i Journal</h1>
+<h3>Eric Torres Jara</h3>
+<p>
+<h4>ASIX 2016</h4>
+</p>
+</section>  
+
+
+<section id="tema-general-del-projecte" class="level1">
+<h1>Tema general del projecte</h1>
+<ul>
+<li>Syslog</li>
+<li>Systemd</li>
+<li>Enrutament</li>
+<li>Exploració de logs</li>
+</ul>
+</section>
+<section id="centralització-de-logs-amb-syslog" class="level1">
+<h1>Centralització de logs amb syslog</h1>
+<section id="syslog" class="level2">
+<h2>Syslog</h2>
+<ul>
+<li>Protocol</li>
+<li>Syslogd</li>
+<li>TCP 514</li>
+<li>Obsolet</li>
+</ul>
+</section>
+<section id="estructura-del-missatge" class="level2">
+<h2>Estructura del missatge</h2>
+<ol type="1">
+<li>Prioritat</li>
+<li>Capcelera</li>
+<li>Text</li>
+</ol>
+</section>
+<section id="prioritat" class="level2">
+<h2>Prioritat</h2>
+<p>Número de 8 bits que indica el recurs( 5 bits ) i el nivel d'importància (3 bits).</p>
+<ul>
+<li>Recurs de 0 fins 23 i l'importància de 0 fins 7</li>
+</ul>
+</section>
+<section id="càlcul-prioritat" class="level2">
+<h2>Càlcul prioritat</h2>
+<pre><code>Prioritat = Recurs * 8 + Importància</code></pre>
+<ul>
+<li>Valors més baixos representen major prioritat</li>
+</ul>
+</section>
+<section id="capcelera" class="level2">
+<h2>Capcelera</h2>
+<p>Mmm dd hh:mm:ss + nom del host o direcció IP</p>
+</section>
+<section id="text" class="level2">
+<h2>Text</h2>
+<p>Informació sobre el procés que ha generat el log.</p>
+<ul>
+<li>Nom del procés + &quot;:&quot; + contingut real del missatge</li>
+</ul>
+</section>
+<section id="exemple" class="level2">
+<h2>Exemple</h2>
+<pre><code>May  2 12:50:35 i10 pengine[12009]: notice: LogActions: Move    ClusterIP   (Started i11 -&gt; i10)</code></pre>
+</section>
+<section id="rsyslog" class="level2">
+<h2>Rsyslog</h2>
+<p>Eś una millora de syslogd ja obsolet. Utilitza el mateix RFC però amb millores:</p>
+<ul>
+<li>Permet el timestamp en milisegons, a més de la utilització de time-zones</li>
+<li>TCP per enviar els missatges</li>
+<li>Completa funcionalitat amb systemd journal y SSL.</li>
+</ul>
+</section>
+<section id="configuració-del-servidori10" class="level2">
+<h2>Configuració del servidor(i10)</h2>
+<ul>
+<li>El fitxer general de rsyslog està a /etc/rsyslog.conf</li>
+<li>Directori de treball és /var/log</li>
+<li>Creació de regles a partir d'expressions regulars</li>
+</ul>
+</section>
+<section id="configuració-del-servidori102" class="level2">
+<h2>Configuració del servidor(i10)(2)</h2>
+<ul>
+<li>Centralitzar-ho tot en un sol fitxer a /var/log/messages</li>
+<li>Dividir els logs segons el hosts, programa</li>
+</ul>
+</section>
+<section id="configuració-del-servidori103" class="level2">
+<h2>Configuració del servidor(i10)(3)</h2>
+<p>El fitxer és /etc/rsyslog.conf:</p>
+<pre><code>    $template TmplAuth, &quot;/var/log/HOSTS/%HOSTNAME%/%PROGRAMNAME%&quot;
+    $template TmplMsg, &quot;/var/log/HOSTS/%HOSTNAME%/%PROGRAMNAME%&quot;
+    $template Msgs, &quot;/var/log/HOSTS/%HOSTNAME%/messages&quot;
+
+    authpriv.* ?TmplAuth
+    *.info,mail.none,authpriv.none,cron.none ?TmplMsg
+    *.* ?Msgs
+    &amp; ~ </code></pre>
+</section>
+<section id="configuració-del-servidori104" class="level2">
+<h2>Configuració del servidor(i10)(4)</h2>
+<ul>
+<li>Restart del servei</li>
+</ul>
+<pre><code>systemctl restart rsyslogd 
+</code></pre>
+<ul>
+<li>Mirar el estat</li>
+</ul>
+<pre><code>systemctl status rsyslogd 
+</code></pre>
+<ul>
+<li>Mirar /var/log/HOSTS/%HOSTNAME%</li>
+</ul>
+<pre><code>ll /var/log/HOSTS/HOSTNAME
+</code></pre>
+</section>
+<section id="configuració-del-clienti11" class="level2">
+<h2>Configuració del client(i11)</h2>
+<p>Només cal indicar la IP del servidor i que volem enviar</p>
+<pre><code>*.* @192.168.2.40:514
+</code></pre>
+<ul>
+<li>Fer el restart del rsyslogd</li>
+</ul>
+</section>
+<section id="exemple-1" class="level2">
+<h2>Exemple</h2>
+<p>Ens demanen que cal tenir un dia els logs del kernel al propi client. A més a un servidor tenir un backup de &quot;x&quot; dies dels logs comprimits.</p>
+</section>
+<section id="exemple-2" class="level2">
+<h2>Exemple</h2>
+<ul>
+<li>Tenim que generar aquests logs en un fitxer.</li>
+</ul>
+<pre><code>kern.*      /var/log/kernel</code></pre>
+</section>
+<section id="exemple-logrotate" class="level2">
+<h2>Exemple: logrotate</h2>
+<p>Eïna d'administració de logs, que permet rotació d'aquests, compressió, esborrar-los etc.</p>
+<ul>
+<li>Rotar /var/log/kernel</li>
+<li>Diariament</li>
+<li>Cromprimit</li>
+<li>2 fitxers previs</li>
+</ul>
+</section>
+<section id="exemple-logrotate2" class="level2">
+<h2>Exemple: logrotate(2)</h2>
+<p>El fitxer és /var/log/kernel:</p>
+<pre><code>/var/log/kernel{
+    missingok
+    notifempty
+    sharedscripts
+    rotate 2
+    hourly
+    compress
+    dateext
+    dateformat %Y%m%d
+    postrotate
+        /bin/touch /var/log/kernel
+    endscript
+}</code></pre>
+</section>
+<section id="exemple-logrotate3" class="level2">
+<h2>Exemple: logrotate(3)</h2>
+<ul>
+<li><p>Més ràpid, cada minut</p></li>
+<li><p>Crear un script que executarà logrotate</p></li>
+</ul>
+<pre><code>#!/bin/sh
+
+/usr/sbin/logrotate -vf /etc/logrotate.d/kernel</code></pre>
+</section>
+<section id="exemple-logrotate4" class="level2">
+<h2>Exemple: logrotate(4)</h2>
+<ul>
+<li>Posar al cron aquest script i que s'executi cada minut.</li>
+</ul>
+<pre><code># Executa  la rotació de logs cada minut
+*/1 * * * * root    /var/tmp/rotate1min.sh</code></pre>
+</section>
+<section id="exemple-rsysnc4" class="level2">
+<h2>Exemple: rsysnc(4)</h2>
+<p>Sincronitzar els logs a un servidor extern i guardar-los 7 dies.</p>
+<ul>
+<li>Rsysnc per sincronitzar carpetes remotes</li>
+<li>Cron per sincronitzar-les cada x minuts</li>
+</ul>
+</section>
+<section id="exemple-rsysnc5" class="level2">
+<h2>Exemple: rsysnc(5)</h2>
+<pre><code># Executa  la rotació de logs cada minut
+*/1 * * * * root    /var/tmp/sync-01.sh</code></pre>
+<pre><code>/usr/bin/rsync -rtvz /var/log/kernel* root@i10:/var/tmp/backup</code></pre>
+</section>
+</section>
+<section id="exploració-de-logs-generats-amb-syslog" class="level1">
+<h1>Exploració de logs generats amb syslog</h1>
+<section id="tipús-que-hem-generat" class="level2">
+<h2>Tipús que hem generat</h2>
+<ul>
+<li>Log massiu</li>
+<li>Logs desglossats</li>
+</ul>
+</section>
+<section id="eïnes" class="level2">
+<h2>Eïnes</h2>
+<ul>
+<li>Grep</li>
+<li>Cut</li>
+</ul>
+</section>
+</section>
+<section id="centralització-de-logs-amb-systemd" class="level1">
+<h1>Centralització de logs amb Systemd</h1>
+<section id="systemd" class="level2">
+<h2>Systemd</h2>
+<ul>
+<li>Conjunt de dimonis d'administració del sistema</li>
+<li>Substitueix l'antic init</li>
+<li>Procés amb PID 1</li>
+</ul>
+</section>
+<section id="journald" class="level2">
+<h2>Journald</h2>
+<ul>
+<li>Fitxers en binari</li>
+<li>/var/log/journal</li>
+<li>journaltcl</li>
+</ul>
+</section>
+<section id="estructura-del-missatge-1" class="level2">
+<h2>Estructura del missatge</h2>
+<ul>
+<li>Missatges d'error més grans i tenen un color vermell i en negreta</li>
+<li>Time stamp convertir a hora local</li>
+<li>Tots els logs són mostrats, també els rotats</li>
+<li>Inici de nou boot</li>
+</ul>
+</section>
+<section id="exemple-3" class="level2">
+<h2>Exemple</h2>
+<pre><code>*May 16 16:24:58 localhost.localdomain su[6439]: (to root) eric on pts/3*</code></pre>
+</section>
+<section id="enrutament-amb-systemd" class="level2">
+<h2>Enrutament amb systemd</h2>
+<ul>
+<li>2 màquines virtuals amb Fedora 23</li>
+<li>Systemd-journal-remote</li>
+<li>Systemd-journal-upload</li>
+</ul>
+</section>
+<section id="configuració-del-client" class="level2">
+<h2>Configuració del client</h2>
+<p>Paquet necessari és:</p>
+<pre><code>yum install -y systemd-journal-gateway</code></pre>
+<p>Cal fer:</p>
+<pre><code>systemctl enable systemd-journal-upload.service
+systemctl stop firewalld
+systemctl disable firewalld
+setenforce 0</code></pre>
+</section>
+<section id="configuració-del-client-2" class="level2">
+<h2>Configuració del client (2)</h2>
+<p>Editem /etc/systemd/journal-upload.conf amb:</p>
+<pre><code>URL=http://172.16.0.10:19532</code></pre>
+<p>Afegim systemd-journal-remote al grup systemd-journal:</p>
+<pre><code>usermod -a -G systemd-journal systemd-journal-remote </code></pre>
+</section>
+<section id="configuració-del-servidor" class="level2">
+<h2>Configuració del servidor</h2>
+<ul>
+<li>Mode actiu ( demana els logs al client )</li>
+<li>Mode passiu ( espera conexions )</li>
+</ul>
+<p>En el meu cas només he pogut implementar mode passiu.</p>
+</section>
+<section id="configuració-del-servidor-2" class="level2">
+<h2>Configuració del servidor (2)</h2>
+<p>Quin port està escoltant, editem /etc/systemd/system/sockets.target.wants/systemd-journal-remote.socket:</p>
+<pre><code>[Socket]
+ListenStream=19532</code></pre>
+</section>
+<section id="configuració-del-servidor-3" class="level2">
+<h2>Configuració del servidor (3)</h2>
+<p>Protocol i carpeta destinada als logs:</p>
+<pre><code>vim /lib/systemd/system/systemd-journal-remote.service</code></pre>
+<p>I editem la següent linia:</p>
+<pre><code>[Service]
+ExecStart=/usr/lib/systemd/systemd-journal-remote \
+          --listen-http=-3 \
+          --output=/var/log/journal/remote/</code></pre>
+</section>
+<section id="configuració-del-servidor-4" class="level2">
+<h2>Configuració del servidor (4)</h2>
+<p>Assegurar-nos de que el directori existeix:</p>
+<pre><code>mkdir /var/log/journal/remote
+chown -R systemd-journal-remote /var/log/journal/remote</code></pre>
+</section>
+</section>
+<section id="exploració-de-logs-amb-journald" class="level1">
+<h1>Exploració de logs amb journald</h1>
+<section id="journalctl" class="level2">
+<h2>Journalctl</h2>
+<ul>
+<li>Cada usuari pot veure el seu log</li>
+<li><p>systemd-journal, adm o wheel</p>
+<pre><code>usermod -a -G wheel pere</code></pre></li>
+</ul>
+</section>
+<section id="filtrat" class="level2">
+<h2>Filtrat</h2>
+<ul>
+<li>Per boot</li>
+<li>Per data</li>
+<li>Per servei</li>
+<li>Per pid,uid o gid</li>
+<li>Kernel</li>
+</ul>
+</section>
+<section id="modificació" class="level2">
+<h2>Modificació</h2>
+<ul>
+<li>Per defecte en format less</li>
+<li>Ho podem treure per tenir un format clàssic</li>
+</ul>
+</section>
+<section id="formats-de-sortida" class="level2">
+<h2>Formats de sortida</h2>
+<p>journalctl -o &quot;format&quot;</p>
+<ul>
+<li>export ( format binari )</li>
+<li>json i json-pretty</li>
+<li>short ( format syslog )</li>
+<li>verbose</li>
+</ul>
+</section>
+<section id="canviar-el-desti-de-les-modificacions" class="level2">
+<h2>Canviar el desti de les modificacions</h2>
+<ul>
+<li><p>Seleccionar el fitxer que volguem:</p>
+<pre><code>journalctl --file </code></pre></li>
+<li><p>Seleccionar el directori:</p>
+<pre><code>journalctl --directory</code></pre></li>
+</ul>
+</section>
+</section>
+<section id="manteniment-dels-logs-amb-journald" class="level1">
+<h1>Manteniment dels logs amb journald</h1>
+<section id="configuració-del-dimoni" class="level2">
+<h2>Configuració del dimoni</h2>
+<p>/etc/systemd/journald.conf</p>
+<ul>
+<li>volatile</li>
+<li>Persistent</li>
+<li>Auto</li>
+<li>None</li>
+</ul>
+</section>
+<section id="generació-dels-logs" class="level2">
+<h2>Generació dels logs</h2>
+<ul>
+<li>Només un fitxer general del sistema</li>
+<li>Split per uid o login</li>
+</ul>
+</section>
+<section id="rotate" class="level2">
+<h2>Rotate</h2>
+<ul>
+<li>SystemMaxUse: Especifica l'espai màxim que pot utilitzar journald en disc.</li>
+<li>SystemMaxFileSize: Quin tamany màxim pot tenir un log abans de ser rotat.</li>
+<li>SplitMode: Ens permet fer un split dels logs per: uid, login and none.</li>
+</ul>
+<pre><code>journalctl --disk-usage</code></pre>
+</section>
+</section>
+<section id="conclusions" class="level1">
+<h1>Conclusions</h1>
+<section id="syslog-1" class="level2">
+<h2>Syslog</h2>
+<ul>
+<li>Segueix la filosofia UNIX de un programa una tasca</li>
+<li>Si no t'agrada una programa afegeixes un que la faci</li>
+<li>Obsolet a l'hora de la exploració de logs</li>
+<li>Enrutament bastant entenedor</li>
+<li>Gran quantitat d'informació</li>
+</ul>
+</section>
+<section id="journald-1" class="level2">
+<h2>Journald</h2>
+<ul>
+<li>Un únic programa que s'encarrega de tot</li>
+<li>Exploració de logs eficient</li>
+<li>No és tan configurable</li>
+<li>No hi ha gaire informació a internet</li>
+<li>Enrutament encara no està del tot acabat</li>
+</ul>
+</section>
+</section>
+<section id="gràcies-per-la-vostra-atenció" class="level1">
+<h1>Gràcies per la vostra atenció</h1>
+<section id="preguntes" class="level2">
+<h2>Preguntes?</h2>
+</section>
+</section>
+</div>
+
+<script src="lib/js/head.min.js"></script>
+<script src="js/reveal.js"></script>
+
+<script>
+  // Full list of configuration options available here:
+  // https://github.com/hakimel/reveal.js#configuration
+  Reveal.initialize({
+    controls: true,
+    progress: true,
+    history: true,
+    center: false,
+  // available themes are in /css/theme
+      theme: Reveal.getQueryHash().theme || 'black', 
+    // default/cube/page/concave/zoom/linear/fade/none
+      transition: Reveal.getQueryHash().transition || 'linear',
+    // Optional libraries used to extend on reveal.js
+  dependencies: [
+    { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+    { src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+    { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+    { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+    { src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+    { src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+    // { src: 'plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+  ]
+  });
+</script>
+
+</body>
+</html>

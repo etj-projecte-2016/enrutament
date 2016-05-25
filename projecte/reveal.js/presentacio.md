@@ -28,7 +28,7 @@
 
 Número de 8 bits que indica el recurs( 5 bits ) i el nivel d'importància (3 bits).
 
-* Recurs de 0 fins 23 i l'importància de 0 fins 7
+* Recurs de 0 fins 23 i la importància de 0 fins 7
 
 ## Càlcul prioritat
 
